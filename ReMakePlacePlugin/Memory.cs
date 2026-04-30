@@ -1,6 +1,7 @@
 ﻿using ECommons.DalamudServices;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.MJI;
+using FFXIVClientStructs.FFXIV.Client.LayoutEngine;
 using Lumina.Excel.Sheets;
 using System;
 using System.Collections.Generic;
@@ -34,13 +35,12 @@ public unsafe class Memory
     {
         try
         {
-            placeAnywhere = Svc.SigScanner.ScanText("C6 ?? ?? ?? 00 00 00 8B FE 48 89") + 6;
+            placeAnywhere = Svc.SigScanner.ScanText("C6 83 ?? ?? ?? ?? ?? 0F 29 44 24") + 6;
             wallAnywhere = Svc.SigScanner.ScanText("48 85 C0 74 ?? C6 87 ?? ?? 00 00 00") + 11;
             wallmountAnywhere = Svc.SigScanner.ScanText("c6 87 83 01 00 00 00 48 83 c4 ??") + 6;
 
             HousingModulePtr = Svc.SigScanner.GetStaticAddressFromSig("48 8B 05 ?? ?? ?? ?? 8B 52");
             LayoutWorldPtr = Svc.SigScanner.GetStaticAddressFromSig("48 8B D1 48 8B 0D ?? ?? ?? ?? 48 85 C9 74 0A", 3);
-
         }
         catch (Exception e)
         {
@@ -220,7 +220,7 @@ public unsafe class Memory
 
         objects = new List<HousingGameObject>();
 
-        for (var i = 0; i < 400; i++)
+        for (var i = 0; i < 600; i++)
         {
             var oPtr = HousingModule->GetCurrentManager()->Objects[i];
             if (oPtr == 0)
