@@ -2,7 +2,7 @@
     "Author":  "ReMakePlace Maintainers",
     "Name":  "ReMakePlace Plugin",
     "InternalName":  "ReMakePlacePlugin",
-    "Description":  "?????????/?????????? ReMakePlace ???????",
+    "Description":  "Automatically save \u0026 load interior and exterior house layouts. Import/export layouts from the ReMakePlace program.",
     "RepoUrl":  "https://github.com/ReMakePlace/plugin",
     "Tags":  [
                  "makeplace",
@@ -12,5 +12,5 @@
                  "re-makeplace"
              ],
     "IconUrl":  "https://raw.githubusercontent.com/ReMakePlace/Plugin/master/icon.png",
-    "Punchline":  "??????????????"
+    "Punchline":  "Automatically save \u0026 load furniture layouts in your house."
 }
