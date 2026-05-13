@@ -80,8 +80,8 @@ public class ConfigurationWindow : Window, IDisposable
         ImGui.SameLine();
 
         ImGui.BeginChild("RightFloat", border: true);
-        ImGui.Text($"Current file location:"); ImGui.SameLine();
-        ImGui.Selectable((Config.SaveLocation.IsNullOrEmpty() ? "No File Selected" : Config.SaveLocation), false, ImGuiSelectableFlags.Disabled);
+        ImGui.Text($"当前文件位置："); ImGui.SameLine();
+        ImGui.Selectable((Config.SaveLocation.IsNullOrEmpty() ? "未选择文件" : Config.SaveLocation), false, ImGuiSelectableFlags.Disabled);
         ImGui.Text("Note: Missing items, incorrect dyes, and items on unselected floors are grayed out");
         DrawItemListRegion();
         ImGui.EndChild();
@@ -161,7 +161,7 @@ public class ConfigurationWindow : Window, IDisposable
     {
         if (!Memory.Instance.IsHousingMode() || !Memory.Instance.CanDyeItem())
         {
-            LogError("Unable to load and apply dyes outside of Furnishing Color mode");
+            LogError("当前不在家具染色模式，无法加载并应用染色");
             return false;
         }
 
@@ -229,7 +229,7 @@ public class ConfigurationWindow : Window, IDisposable
             }
             catch (Exception e)
             {
-                LogError($"Apply Dyes Error: {e.Message}", e.StackTrace);
+                LogError($"应用染色错误： {e.Message}", e.StackTrace);
             }
         }
     }
@@ -317,7 +317,7 @@ public class ConfigurationWindow : Window, IDisposable
 
         //ImGui.SameLine();ImGui.Dummy(new Vector2(10, 0));ImGui.SameLine();
 
-        if (ImGui.Checkbox("Show Tooltips", ref Config.ShowTooltips)) Config.Save();
+        if (ImGui.Checkbox("显示提示", ref Config.ShowTooltips)) Config.Save();
 
         bool hasFloors = false;
         try
@@ -402,7 +402,7 @@ public class ConfigurationWindow : Window, IDisposable
     {
         Vector2 menuDimensions = ImGui.GetContentRegionAvail();
 
-        DrawMainMenuButton($"Open File", () =>
+        DrawMainMenuButton($"打开文件", () =>
         {
             string saveName = Config.SaveLocation.IsNullOrEmpty()
                 ? "save"
@@ -432,7 +432,7 @@ public class ConfigurationWindow : Window, IDisposable
         var ctrlKeyPressed = ImGui.GetIO().KeyCtrl;
         var dyeingItems = ReMakePlacePlugin.CurrentlyDyeingItems;
 
-        DrawMainMenuButton(dyeingItems ? "Stop Dyeing" : "Apply Dyes", () =>
+        DrawMainMenuButton(dyeingItems ? "停止染色" : "应用染色", () =>
         {
             if (dyeingItems)
             {
@@ -460,7 +460,7 @@ public class ConfigurationWindow : Window, IDisposable
         //"Tries to place items from Inventory & Storage",
         //menuDimensions.X);
 
-        DrawMainMenuButton("Save As", () =>
+        DrawMainMenuButton("另存为", () =>
         {
             if (CheckModeForSave())
             {
@@ -484,7 +484,7 @@ public class ConfigurationWindow : Window, IDisposable
         DrawMainMenuButton("Save",
             SaveLayoutToFile,
             Config.SaveLocation.IsNullOrEmpty(),
-            "Save layout to current file location",
+            "将布局保存到当前文件",
             menuDimensions.X);
     }
 
@@ -776,3 +776,4 @@ public class ConfigurationWindow : Window, IDisposable
 
     #endregion
 }
+

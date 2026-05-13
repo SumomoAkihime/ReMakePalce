@@ -88,7 +88,7 @@ public class ReMakePlacePlugin : IDalamudPlugin
         {
             Svc.Commands.AddHandler($"/{commandName}", new CommandInfo(CommandHandler)
             {
-                HelpMessage = "load config window."
+                HelpMessage = "打开插件配置窗口。"
             });
         }
 
@@ -179,7 +179,7 @@ public class ReMakePlacePlugin : IDalamudPlugin
         var stuff = GetSelectedHousingItemAddressHook.Original((long)housingManager);
         if (stuff == 0)
         {
-            LogError("No item selected to interact with.");
+            LogError("未选中可交互物品。");
             return;
         }
 
@@ -439,7 +439,7 @@ public class ReMakePlacePlugin : IDalamudPlugin
         {
             Memory.Instance.SetPlaceAnywhere(OriginalPlaceAnywhere);
             CurrentlyPlacingItems = false;
-            Log("Finished applying layout");
+            Log("布局应用完成");
         }
     }
 
@@ -558,12 +558,12 @@ public class ReMakePlacePlugin : IDalamudPlugin
     {
         if (CurrentlyDyeingItems)
         {
-            Log($"Already dyeing items");
+            Log($"已经在执行染色");
             return;
         }
 
         CurrentlyDyeingItems = true;
-        Log($"Applying dyes with interval of {Config.LoadInterval}ms");
+        Log($"开始应用染色，间隔 {Config.LoadInterval}ms");
 
         ItemsToDye.Clear();
 
@@ -1354,3 +1354,4 @@ public class ReMakePlacePlugin : IDalamudPlugin
     }
 
 }
+
