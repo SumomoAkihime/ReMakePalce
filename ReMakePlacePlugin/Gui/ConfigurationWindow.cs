@@ -82,7 +82,7 @@ public class ConfigurationWindow : Window, IDisposable
         ImGui.BeginChild("RightFloat", border: true);
         ImGui.Text($"当前文件位置："); ImGui.SameLine();
         ImGui.Selectable((Config.SaveLocation.IsNullOrEmpty() ? "未选择文件" : Config.SaveLocation), false, ImGuiSelectableFlags.Disabled);
-        ImGui.Text("Note: Missing items, incorrect dyes, and items on unselected floors are grayed out");
+        ImGui.Text("提示：缺失物品、染色不匹配、或未勾选楼层的物品会以灰色显示");
         DrawItemListRegion();
         ImGui.EndChild();
         this.FileDialogManager.Draw();
@@ -110,11 +110,11 @@ public class ConfigurationWindow : Window, IDisposable
     {
         if (Memory.Instance.GetCurrentTerritory() == Memory.HousingArea.Island)
         {
-            LogError("(Manage Furnishings -> Place Furnishing Glamours)");
+            LogError("(管理陈设 -> 放置家具幻化)");
         }
         else
         {
-            LogError("(Housing -> Indoor/Outdoor Furnishings)");
+            LogError("(房屋 -> 室内/室外陈设)");
         }
     }
 
@@ -122,7 +122,7 @@ public class ConfigurationWindow : Window, IDisposable
     {
         if (Memory.Instance.IsHousingMode()) return true;
 
-        LogError("Unable to save layouts outside of Layout mode");
+        LogError("当前不在布局模式，无法保存布局");
         LogLayoutMode();
         return false;
     }
@@ -132,7 +132,7 @@ public class ConfigurationWindow : Window, IDisposable
         if (!Memory.Instance.IsHousingMode())
         {
             if (ApplyLayout)
-                LogError("Unable to load and apply layouts outside of Rotate Layout mode");
+                LogError("当前不在旋转布局模式，无法加载并应用布局");
 
             return false;
         }
@@ -141,7 +141,7 @@ public class ConfigurationWindow : Window, IDisposable
         {
             if (!Memory.Instance.CanEditItem())
             {
-                LogError("Unable to load and apply layouts outside of Rotate Layout mode");
+                LogError("当前不在旋转布局模式，无法加载并应用布局");
                 return false;
             }
         }
@@ -149,7 +149,7 @@ public class ConfigurationWindow : Window, IDisposable
         {
             if (!Memory.Instance.CanEditItem() && !Memory.Instance.CanDyeItem())
             {
-                LogError("Unable to load layouts outside of Rotate Layout mode or Furnishing Color mode");
+                LogError("当前不在旋转布局模式或家具染色模式，无法加载布局");
                 return false;
             }
         }
@@ -179,7 +179,7 @@ public class ConfigurationWindow : Window, IDisposable
         }
         catch (Exception e)
         {
-            LogError($"Save Error: {e.Message}", e.StackTrace);
+            LogError($"保存错误：{e.Message}", e.StackTrace);
         }
     }
 
@@ -190,7 +190,7 @@ public class ConfigurationWindow : Window, IDisposable
             try
             {
                 SaveLayoutManager.ImportLayout(Config.SaveLocation);
-                Log(String.Format("Imported {0} items", Plugin.InteriorItemList.Count + Plugin.ExteriorItemList.Count));
+                Log(String.Format("已导入 {0} 件物品", Plugin.InteriorItemList.Count + Plugin.ExteriorItemList.Count));
 
                 if (CheckModeForLoad(ApplyLayout))
                 {
@@ -204,7 +204,7 @@ public class ConfigurationWindow : Window, IDisposable
             }
             catch (Exception e)
             {
-                LogError($"Load Error: {e.Message}", e.StackTrace);
+                LogError($"加载错误：{e.Message}", e.StackTrace);
             }
         }
     }
@@ -216,7 +216,7 @@ public class ConfigurationWindow : Window, IDisposable
             try
             {
                 SaveLayoutManager.ImportLayout(Config.SaveLocation);
-                Log(String.Format("Imported {0} items", Plugin.InteriorItemList.Count + Plugin.ExteriorItemList.Count));
+                Log(String.Format("已导入 {0} 件物品", Plugin.InteriorItemList.Count + Plugin.ExteriorItemList.Count));
 
                 if (CheckModeForApplyDyes())
                 {
@@ -241,7 +241,7 @@ public class ConfigurationWindow : Window, IDisposable
             try
             {
                 SaveLayoutManager.ImportLayout(Config.SaveLocation);
-                Log(String.Format("Imported {0} items", Plugin.InteriorItemList.Count + Plugin.ExteriorItemList.Count));
+                Log(String.Format("已导入 {0} 件物品", Plugin.InteriorItemList.Count + Plugin.ExteriorItemList.Count));
 
                 if (CheckModeForLoad())
                 {
@@ -254,7 +254,7 @@ public class ConfigurationWindow : Window, IDisposable
             }
             catch (Exception e)
             {
-                LogError($"Place Items Error: {e.Message}", e.StackTrace);
+                LogError($"摆放物品错误：{e.Message}", e.StackTrace);
             }
         }
     }
@@ -268,16 +268,16 @@ public class ConfigurationWindow : Window, IDisposable
 
         var furnitureSections = new List<(string label, List<HousingItem> items, List<Fixture> fixtures, bool unused)>
             {
-                ("Interior",Plugin.InteriorItemList, Plugin.Layout.interiorFixture, false),
-                ("Exterior",Plugin.ExteriorItemList, Plugin.Layout.exteriorFixture, false),
-                ("Unused", Plugin.UnusedItemList, new List<Fixture>{ }, true)
+                ("室内",Plugin.InteriorItemList, Plugin.Layout.interiorFixture, false),
+                ("室外",Plugin.ExteriorItemList, Plugin.Layout.exteriorFixture, false),
+                ("未使用", Plugin.UnusedItemList, new List<Fixture>{ }, true)
             };
 
         foreach (var section in furnitureSections)
         {
             ImGui.PushID(section.label);
 
-            if (ImGui.CollapsingHeader($"{section.label} Furniture", ImGuiTreeNodeFlags.DefaultOpen))
+            if (ImGui.CollapsingHeader($"{section.label}家具", ImGuiTreeNodeFlags.DefaultOpen))
             {
                 if (section.unused) { DrawItemList(section.items, true); }
                 else { DrawItemList(section.items); }
@@ -285,7 +285,7 @@ public class ConfigurationWindow : Window, IDisposable
 
             if (!section.unused)
             {
-                if (ImGui.CollapsingHeader($"{section.label} Fixture", ImGuiTreeNodeFlags.DefaultOpen))
+                if (ImGui.CollapsingHeader($"{section.label}部件", ImGuiTreeNodeFlags.DefaultOpen))
                 {
                     DrawFixtureList(section.fixtures);
                 }
@@ -298,22 +298,22 @@ public class ConfigurationWindow : Window, IDisposable
 
     unsafe private void DrawGeneralSettings()
     {
-        if (ImGui.Checkbox("Select Previous Dye", ref Config.SelectPreviousDye)) Config.Save();
+        if (ImGui.Checkbox("记忆上次染剂", ref Config.SelectPreviousDye)) Config.Save();
         if (Config.ShowTooltips && ImGui.IsItemHovered())
-            ImGui.SetTooltip("Automatically selects the previously used dye when opening the furniture Dyeing menu\nStill requires you to confirm");
+            ImGui.SetTooltip("打开染色界面时自动选中上次使用的染剂\n仍需你手动确认");
 
-        if (ImGui.Checkbox("Auto. Confirm Dye", ref Config.AutoConfirmDye)) Config.Save();
+        if (ImGui.Checkbox("自动确认染色", ref Config.AutoConfirmDye)) Config.Save();
         if (Config.ShowTooltips && ImGui.IsItemHovered())
-            ImGui.SetTooltip("Will automatically press 'Yes' when dyeing");
+            ImGui.SetTooltip("染色时会自动点击“是”");
 
-        if (ImGui.Checkbox("Use Rare Dyes", ref Config.UseRareStains)) Config.Save();
+        if (ImGui.Checkbox("允许稀有染剂", ref Config.UseRareStains)) Config.Save();
         if (Config.ShowTooltips && ImGui.IsItemHovered())
-            ImGui.SetTooltip("Will allow usage of rare dyes such as Pure White, Jet Black, etc.");
+            ImGui.SetTooltip("允许使用纯白、煤黑等稀有染剂");
 
         //ImGui.BeginChild("SettingsPanel", new Vector2(ImGui.GetContentRegionAvail().X, ImGui.GetFrameHeightWithSpacing() * 7));
-        if (ImGui.Checkbox("Label Furniture", ref Config.DrawScreen)) Config.Save();
+        if (ImGui.Checkbox("显示家具标记", ref Config.DrawScreen)) Config.Save();
         if (Config.ShowTooltips && ImGui.IsItemHovered())
-            ImGui.SetTooltip("Show furniture names on the screen");
+            ImGui.SetTooltip("在屏幕上显示家具名称");
 
         //ImGui.SameLine();ImGui.Dummy(new Vector2(10, 0));ImGui.SameLine();
 
@@ -330,7 +330,7 @@ public class ConfigurationWindow : Window, IDisposable
             // Thanks zbee
         }
 
-        DrawMainMenuButton($"Teamcraft Export", () =>
+        DrawMainMenuButton($"导出到 Teamcraft", () =>
         {
             var allItemsList = new Dictionary<string, int>();
             for (int i = 0; i < Plugin.InteriorItemList.Count(); i++)
@@ -360,17 +360,17 @@ public class ConfigurationWindow : Window, IDisposable
             Utils.TeamcraftExport(allItemsList);
         },
         Config.SaveLocation.IsNullOrEmpty(),
-        "Generates a list import link for TeamCraft",
+        "生成 Teamcraft 清单导入链接",
         ImGui.GetContentRegionAvail().X);
         if (Config.SaveLocation.IsNullOrEmpty())
         {
             if (Config.ShowTooltips && ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled))
             {
-                ImGui.SetTooltip("No active file to export");
+                ImGui.SetTooltip("当前没有可导出的文件");
             }
         }
 
-        ImGui.Text("Placement Interval");
+        ImGui.Text("摆放间隔");
 
         ImGui.Dummy(new Vector2(5, 0)); ImGui.SameLine();
         ImGui.PushItemWidth(60);
@@ -379,20 +379,20 @@ public class ConfigurationWindow : Window, IDisposable
             Config.Save();
         }
         ImGui.PopItemWidth();
-        if (Config.ShowTooltips && ImGui.IsItemHovered()) ImGui.SetTooltip("Time interval between furniture placements when applying a layout. If this is too low (e.g. 200 ms), some placements may be skipped over.");
+        if (Config.ShowTooltips && ImGui.IsItemHovered()) ImGui.SetTooltip("应用布局时每件家具的摆放间隔。设置过低（如 200ms）可能导致部分家具被跳过。");
 
         ImGui.Dummy(new Vector2(10, 0));
 
         if (hasFloors)
         {
-            ImGui.Text("Enabled Floors");
+            ImGui.Text("启用楼层");
             float height = ImGui.GetFrameHeightWithSpacing() * 3 + ImGui.GetStyle().WindowPadding.Y;
             float width = 120;
             ImGui.BeginChild("FloorSelection", new Vector2(width, height), true, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse);
             //if (ImGui.CollapsingHeader("Enabled Floors")){
-            if (Memory.Instance.HasUpperFloor() && ImGui.Checkbox("Upper Floor", ref Config.UpperFloor)) Config.Save();
-            if (ImGui.Checkbox("Ground Floor", ref Config.GroundFloor)) Config.Save();
-            if (ImGui.Checkbox("Basement", ref Config.Basement)) Config.Save();
+            if (Memory.Instance.HasUpperFloor() && ImGui.Checkbox("上层", ref Config.UpperFloor)) Config.Save();
+            if (ImGui.Checkbox("一层", ref Config.GroundFloor)) Config.Save();
+            if (ImGui.Checkbox("地下层", ref Config.Basement)) Config.Save();
             //}
             ImGui.EndChild();
         }
@@ -409,7 +409,7 @@ public class ConfigurationWindow : Window, IDisposable
                 ? "save"
                 : Path.GetFileNameWithoutExtension(Config.SaveLocation);
 
-            FileDialogManager.OpenFileDialog("Select a Layout File", ".json", (ok, res) =>
+            FileDialogManager.OpenFileDialog("选择布局文件", ".json", (ok, res) =>
             {
                 if (!ok) return;
                 Config.SaveLocation = res.FirstOrDefault("");
@@ -418,16 +418,16 @@ public class ConfigurationWindow : Window, IDisposable
             }, 1, Path.GetDirectoryName(Config.SaveLocation));
         },
         false,
-        "Select a file to open",
+        "选择要打开的文件",
         menuDimensions.X);
 
-        DrawMainMenuButton("Apply", () =>
+        DrawMainMenuButton("应用布局", () =>
         {
             Config.Save();
             LoadLayoutFromFile(true);
         },
         Config.SaveLocation.IsNullOrEmpty(),
-        "Attempt to apply layout from current file location",
+        "从当前文件位置尝试应用布局",
         menuDimensions.X);
 
         var ctrlKeyPressed = ImGui.GetIO().KeyCtrl;
@@ -446,8 +446,8 @@ public class ConfigurationWindow : Window, IDisposable
             }
         },
         dyeingItems ? false : (Config.SaveLocation.IsNullOrEmpty() || !ctrlKeyPressed),
-        dyeingItems ? "Will stop applying Dyes to furnitures" :
-            (ctrlKeyPressed ? "Attempt to apply dyes, Furnishing Color window needs to be open" : "Hold CTRL to apply dyes"),
+        dyeingItems ? "将停止对家具继续染色" :
+            (ctrlKeyPressed ? "尝试应用染色（需打开家具染色窗口）" : "按住 CTRL 后可应用染色"),
         menuDimensions.X);
 
         //DrawMainMenuButton("Place Items Down", () =>
@@ -469,7 +469,7 @@ public class ConfigurationWindow : Window, IDisposable
                     ? "save"
                     : Path.GetFileNameWithoutExtension(Config.SaveLocation);
 
-                FileDialogManager.SaveFileDialog("Select a Save Location", ".json", saveName, "json", (ok, res) =>
+                FileDialogManager.SaveFileDialog("选择保存位置", ".json", saveName, "json", (ok, res) =>
                 {
                     if (!ok) return;
                     Config.SaveLocation = res;
@@ -479,10 +479,10 @@ public class ConfigurationWindow : Window, IDisposable
             }
         },
         false,
-        "Save layout to a new file location",
+        "将布局保存到新文件",
         menuDimensions.X);
 
-        DrawMainMenuButton("Save",
+        DrawMainMenuButton("保存",
             SaveLayoutToFile,
             Config.SaveLocation.IsNullOrEmpty(),
             "将布局保存到当前文件",
@@ -515,7 +515,7 @@ public class ConfigurationWindow : Window, IDisposable
             {
                 ImGui.PushStyleVar(ImGuiStyleVar.CellPadding, new Vector2(0.0f, 0.0f));
                 ImGui.PushStyleVar(ImGuiStyleVar.SelectableTextAlign, new Vector2(0.5f, 0.5f));
-                if (ImGui.Button("Set" + "##" + uniqueID))
+                if (ImGui.Button("设定" + "##" + uniqueID))
                 {
                     Plugin.MatchLayout();
 
@@ -525,7 +525,7 @@ public class ConfigurationWindow : Window, IDisposable
                     }
                     else
                     {
-                        LogError($"Unable to set position for {housingItem.Name}");
+                        LogError($"无法设定位置：{housingItem.Name}");
                     }
                 }
                 ImGui.PopStyleVar(2);
@@ -596,7 +596,7 @@ public class ConfigurationWindow : Window, IDisposable
     {
         try
         {
-            if (ImGui.Button("Clear"))
+            if (ImGui.Button("清空"))
             {
                 fixtureList.Clear();
                 Config.Save();
@@ -604,9 +604,9 @@ public class ConfigurationWindow : Window, IDisposable
 
             if (ImGui.BeginTable("FixtureList", 3, ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg | ImGuiTableFlags.Resizable))
             {
-                ImGui.TableSetupColumn("Level", ImGuiTableColumnFlags.None, 2);
-                ImGui.TableSetupColumn("Fixture", ImGuiTableColumnFlags.None, 1);
-                ImGui.TableSetupColumn("Item", ImGuiTableColumnFlags.None, 5);
+                ImGui.TableSetupColumn("层级", ImGuiTableColumnFlags.None, 2);
+                ImGui.TableSetupColumn("部件", ImGuiTableColumnFlags.None, 1);
+                ImGui.TableSetupColumn("物品", ImGuiTableColumnFlags.None, 5);
                 ImGui.TableHeadersRow();
 
                 foreach (var fixture in fixtureList)
@@ -639,7 +639,7 @@ public class ConfigurationWindow : Window, IDisposable
 
     private void DrawItemList(List<HousingItem> itemList, bool isUnused = false)
     {
-        if (ImGui.Button("Sort"))
+        if (ImGui.Button("排序"))
         {
             itemList.Sort((x, y) =>
             {
@@ -658,13 +658,13 @@ public class ConfigurationWindow : Window, IDisposable
             Config.Save();
         }
         ImGui.SameLine();
-        if (ImGui.Button("Clear"))
+        if (ImGui.Button("清空"))
         {
             itemList.Clear();
             Config.Save();
         }
         ImGui.SameLine();
-        if (IconTextButton(FontAwesomeIcon.SyncAlt, "Refresh"))
+        if (IconTextButton(FontAwesomeIcon.SyncAlt, "刷新"))
         {
             LoadLayoutFromFile();
         }
@@ -677,14 +677,14 @@ public class ConfigurationWindow : Window, IDisposable
         {
             if (!isUnused)
             {
-                ImGui.TableSetupColumn("Set", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 25f * ImGuiHelpers.GlobalScale); // Making this fixed with can render it truncated and unreadable on higher scalings
+                ImGui.TableSetupColumn("设定", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 25f * ImGuiHelpers.GlobalScale); // Making this fixed with can render it truncated and unreadable on higher scalings
             }
 
             // Stretch columns with relative weights
-            ImGui.TableSetupColumn("Item", ImGuiTableColumnFlags.WidthStretch, 1.8f);           // Wider
-            ImGui.TableSetupColumn("Position (X,Y,Z)", ImGuiTableColumnFlags.WidthStretch, 1.5f);
-            ImGui.TableSetupColumn("Rotation", ImGuiTableColumnFlags.WidthStretch, 0.5f);
-            ImGui.TableSetupColumn("Dye/Material", ImGuiTableColumnFlags.WidthStretch, 1.0f);
+            ImGui.TableSetupColumn("物品", ImGuiTableColumnFlags.WidthStretch, 1.8f);           // Wider
+            ImGui.TableSetupColumn("坐标 (X,Y,Z)", ImGuiTableColumnFlags.WidthStretch, 1.5f);
+            ImGui.TableSetupColumn("旋转", ImGuiTableColumnFlags.WidthStretch, 0.5f);
+            ImGui.TableSetupColumn("染色/材质", ImGuiTableColumnFlags.WidthStretch, 1.0f);
 
             ImGui.TableHeadersRow();
 
@@ -753,11 +753,11 @@ public class ConfigurationWindow : Window, IDisposable
 
                     ImGui.SameLine();
 
-                    if (ImGui.Button("Set" + "##ScreenItem" + i.ToString()))
+                    if (ImGui.Button("设定" + "##ScreenItem" + i.ToString()))
                     {
                         if (!Memory.Instance.CanEditItem())
                         {
-                            LogError("Unable to set position while not in rotate layout mode");
+                            LogError("当前不在旋转布局模式，无法设定位置");
                             continue;
                         }
 
