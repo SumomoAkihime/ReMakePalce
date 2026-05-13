@@ -65,9 +65,8 @@ public class Furniture : BasicItem
     public Color GetColor()
     {
 
-        if (properties.TryGetValue("color", out object colorObj))
+        if (properties.TryGetValue("color", out var colorObj) && colorObj is string color)
         {
-            var color = (string)colorObj;
             if (color.Length >= 6)
             {
                 return System.Drawing.ColorTranslator.FromHtml("#" + color.Substring(0, 6));
@@ -79,11 +78,11 @@ public class Furniture : BasicItem
 
     public BasicItem GetMaterial()
     {
-        if (properties.TryGetValue("material", out object materialObj))
+        if (properties.TryGetValue("material", out var materialObj))
         {
             if (materialObj is JsonElement materialJson)
             {
-                return materialJson.Deserialize<BasicItem>();
+                return materialJson.Deserialize<BasicItem>() ?? new BasicItem();
             }
 
         }
@@ -166,12 +165,12 @@ public class ObjectToInferredTypesConverter : JsonConverter<object>
 
 public class SaveLayoutManager
 {
-    public static Configuration Config;
-    public static ReMakePlacePlugin Plugin;
+    public static Configuration Config = null!;
+    public static ReMakePlacePlugin Plugin = null!;
 
-    public static List<(Color, uint)> ColorList;
-    private static Dictionary<string, Item> _itemsByName;
-    private static Dictionary<uint, Item> _itemsById;
+    public static List<(Color, uint)> ColorList = new();
+    private static Dictionary<string, Item> _itemsByName = new(StringComparer.Ordinal);
+    private static Dictionary<uint, Item> _itemsById = new();
     private static bool _cacheInitialized = false;
 
     public SaveLayoutManager(ReMakePlacePlugin plugin, Configuration config)
@@ -245,7 +244,7 @@ public class SaveLayoutManager
         return new List<float> { (q.X), (q.Y), (q.Z), (q.W) };
     }
 
-    static HousingItem ConvertToHousingItem(Furniture furniture)
+    static HousingItem? ConvertToHousingItem(Furniture furniture)
     {
         Item? itemRow = null;
 
@@ -312,7 +311,9 @@ public class SaveLayoutManager
         var options = new JsonSerializerOptions();
         options.Converters.Add(new ObjectToInferredTypesConverter());
 
-        Layout layout = JsonSerializer.Deserialize<Layout>(jsonString, options);
+        Layout? layout = JsonSerializer.Deserialize<Layout>(jsonString, options);
+        if (layout == null)
+            throw new Exception("Invalid layout file");
 
         Plugin.InteriorItemList.Clear();
         layoutScale = layout.interiorScale;
@@ -429,7 +430,7 @@ public class SaveLayoutManager
 
             var fixture = new Fixture("Facility");
             fixture.level = "Facility " + ToRoman(workshop.PlaceId[i]);
-            fixture.name = BuildingSheet.GetSubrowOrDefault(1, workshop.BuildingLevel[i])?.Name.Value.Text.ToString();
+            fixture.name = BuildingSheet.GetSubrowOrDefault(1, workshop.BuildingLevel[i])?.Name.Value.Text.ToString() ?? string.Empty;
 
             exterior.Add(fixture);
         }
@@ -440,7 +441,7 @@ public class SaveLayoutManager
             if (granary.PlaceId[i] == 0) continue;
             var fixture = new Fixture("Facility");
             fixture.level = "Facility " + ToRoman(granary.PlaceId[i]);
-            fixture.name = BuildingSheet.GetSubrowOrDefault(2, granary.BuildingLevel[i])?.Name.Value.Text.ToString();
+            fixture.name = BuildingSheet.GetSubrowOrDefault(2, granary.BuildingLevel[i])?.Name.Value.Text.ToString() ?? string.Empty;
 
             exterior.Add(fixture);
         }
@@ -453,7 +454,7 @@ public class SaveLayoutManager
 
             var fixture = new Fixture("Landmark");
             fixture.level = "Landmark " + ToRoman((byte)(i + 1));
-            fixture.name = LandmarkSheet.GetRowOrDefault(id)?.Name.Value.Text.ToString();
+            fixture.name = LandmarkSheet.GetRowOrDefault(id)?.Name.Value.Text.ToString() ?? string.Empty;
             exterior.Add(fixture);
         }
     }
@@ -470,10 +471,11 @@ public class SaveLayoutManager
 
             for (var j = 0; j < IndoorFloorData.PartsMax; j++)
             {
-                if (fixtures[j].FixtureKey == -1 || fixtures[j].FixtureKey == 0) continue;
-                if (!fixtures[j].Item.HasValue) continue;
+                var fixtureInfo = fixtures[j];
+                if (fixtureInfo.FixtureKey == -1 || fixtureInfo.FixtureKey == 0) continue;
+                if (!fixtureInfo.Item.HasValue) continue;
 
-                var item = fixtures[j].Item.Value;
+                var item = fixtureInfo.Item.Value;
                 if (item.RowId == 0) continue;
 
                 var fixture = new Fixture();
@@ -487,7 +489,7 @@ public class SaveLayoutManager
             }
         }
 
-        layout.houseSize = Memory.Instance.GetIndoorHouseSize();
+        layout.houseSize = Memory.Instance.GetIndoorHouseSize() ?? string.Empty;
 
         var territoryId = Memory.Instance.GetTerritoryTypeId();
 

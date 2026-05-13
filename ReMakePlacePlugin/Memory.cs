@@ -21,7 +21,7 @@ public unsafe class Memory
 
     public delegate InventoryContainer* GetInventoryContainerDelegate(IntPtr inventoryManager, InventoryType inventoryType);
 
-    public static Memory Instance { get; private set; }
+    public static Memory Instance { get; private set; } = null!;
 
     private IntPtr HousingModulePtr { get; }
     private IntPtr LayoutWorldPtr { get; }
@@ -67,10 +67,10 @@ public unsafe class Memory
     public bool HasUpperFloor()
     {
         var houseSize = GetIndoorHouseSize();
-        return houseSize.Equals("Medium") || houseSize.Equals("Large");
+        return houseSize != null && (houseSize.Equals("Medium") || houseSize.Equals("Large"));
     }
 
-    public string GetIndoorHouseSize()
+    public string? GetIndoorHouseSize()
     {
         var territoryId = Memory.Instance.GetTerritoryTypeId();
 
@@ -219,7 +219,7 @@ public unsafe class Memory
 
     public unsafe bool TryGetNameSortedHousingGameObjectList(out List<HousingGameObject> objects)
     {
-        objects = null;
+        objects = new List<HousingGameObject>();
         if (HousingModule == null ||
             HousingModule->GetCurrentManager() == null ||
             HousingModule->GetCurrentManager()->Objects == null)
@@ -291,7 +291,7 @@ public unsafe class Memory
             if (territoryRowId != 0) { Svc.Log.Debug($"Invalid territory row: {territoryRowId}"); }
             return HousingArea.None;
         }
-        if (territoryRow.Equals(null) || territoryRow.Name.ToString().Equals("r1i5")) // blacklist company workshop from editing since it's not actually a housing area
+        if (territoryRow.Name.ToString().Equals("r1i5")) // blacklist company workshop from editing since it's not actually a housing area
         {
             return HousingArea.None;
         }

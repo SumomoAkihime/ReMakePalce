@@ -322,7 +322,8 @@ public class ConfigurationWindow : Window, IDisposable
         bool hasFloors = false;
         try
         {
-            hasFloors = Memory.Instance.GetCurrentTerritory() == Memory.HousingArea.Indoors && !Memory.Instance.GetIndoorHouseSize().Equals("Apartment");
+            var houseSize = Memory.Instance.GetIndoorHouseSize();
+            hasFloors = Memory.Instance.GetCurrentTerritory() == Memory.HousingArea.Indoors && !string.Equals(houseSize, "Apartment", StringComparison.Ordinal);
         }
         catch (NullReferenceException)
         {
@@ -569,7 +570,7 @@ public class ConfigurationWindow : Window, IDisposable
         var stain = Svc.Data.GetExcelSheet<Stain>().GetRowOrDefault(housingItem.Stain);
         var colorName = stain?.Name;
 
-        if (housingItem.Stain != 0)
+        if (housingItem.Stain != 0 && stain.HasValue)
         {
             Utils.StainButton("dye_" + i, stain.Value, new Vector2(20));
             ImGui.SameLine();
@@ -776,4 +777,5 @@ public class ConfigurationWindow : Window, IDisposable
 
     #endregion
 }
+
 

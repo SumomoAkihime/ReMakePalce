@@ -31,7 +31,7 @@ public class ReMakePlacePlugin : IDalamudPlugin
 {
     public string Name => $"ReMakePlace Plugin v{Assembly.GetExecutingAssembly().GetName().Version}";
 
-    private string[] commandNames = ["remakeplace", "rmp", "makeplace"];
+    private readonly string[] commandNames = ["remakeplace", "rmp", "makeplace"];
     public PluginUi Gui { get; private set; }
     public Configuration Config { get; private set; }
 
@@ -41,13 +41,13 @@ public class ReMakePlacePlugin : IDalamudPlugin
 
     // Function for selecting an item, usually used when clicking on one in game.        
     public delegate void SelectItemDelegate(IntPtr housingStruct, IntPtr item);
-    private static HookWrapper<SelectItemDelegate> SelectItemHook;
+    private static HookWrapper<SelectItemDelegate>? SelectItemHook;
 
     public delegate long GetSelectedHousingItemAddressDelegate(long housingManager);
-    private static HookWrapper<GetSelectedHousingItemAddressDelegate> GetSelectedHousingItemAddressHook;
+    private static HookWrapper<GetSelectedHousingItemAddressDelegate>? GetSelectedHousingItemAddressHook;
 
     public delegate void InteractWithHousingItemDelegate(long agentHousingPtr, long unk);
-    private static HookWrapper<InteractWithHousingItemDelegate> InteractWithHousingItemHook;
+    private static HookWrapper<InteractWithHousingItemDelegate>? InteractWithHousingItemHook;
 
     public static bool CurrentlyPlacingItems = false;
 
@@ -57,7 +57,7 @@ public class ReMakePlacePlugin : IDalamudPlugin
 
     public static bool ApplyChange = false;
 
-    public static SaveLayoutManager LayoutManager;
+    public static SaveLayoutManager LayoutManager = null!;
 
     public static bool logHousingDetour = false;
 
@@ -68,12 +68,12 @@ public class ReMakePlacePlugin : IDalamudPlugin
     public List<HousingItem> ExteriorItemList = new List<HousingItem>();
     public List<HousingItem> UnusedItemList = new List<HousingItem>();
 
-    private HookWrapper<AtkUnitBase.Delegates.FireCallback> AddonFireCallbackHook;
+    private HookWrapper<AtkUnitBase.Delegates.FireCallback>? AddonFireCallbackHook;
     private Stain? PreviouslySelectedStain = null;
     private bool IsSelectingDye = false;
     private List<uint> MissingDyes = new List<uint>();
 
-    private TaskManager TaskManager;
+    private TaskManager TaskManager = null!;
 
     public ReMakePlacePlugin(IDalamudPluginInterface pi)
     {
@@ -163,12 +163,12 @@ public class ReMakePlacePlugin : IDalamudPlugin
 
     private unsafe long GetSelectedHousingItemAddressDetour(long housingManager)
     {
-        return GetSelectedHousingItemAddressHook.Original(housingManager);
+        return GetSelectedHousingItemAddressHook!.Original(housingManager);
     }
 
     private unsafe void InteractWithHousingItemDetour(long agentHousingPtr, long unk)
     {
-        InteractWithHousingItemHook.Original(agentHousingPtr, unk);
+        InteractWithHousingItemHook!.Original(agentHousingPtr, unk);
     }
 
     private unsafe void InteractWithSelectedItem()
@@ -176,14 +176,14 @@ public class ReMakePlacePlugin : IDalamudPlugin
         var agentHousing = Framework.Instance()->GetUIModule()->GetAgentModule()->GetAgentByInternalId(AgentId.Housing);
         var housingManager = HousingManager.Instance();
 
-        var stuff = GetSelectedHousingItemAddressHook.Original((long)housingManager);
+        var stuff = GetSelectedHousingItemAddressHook!.Original((long)housingManager);
         if (stuff == 0)
         {
             LogError("未选中可交互物品。");
             return;
         }
 
-        InteractWithHousingItemHook.Original((long)agentHousing, stuff);
+        InteractWithHousingItemHook!.Original((long)agentHousing, stuff);
     }
 
     /// <summary>
@@ -192,7 +192,7 @@ public class ReMakePlacePlugin : IDalamudPlugin
     /// </summary>
     private unsafe bool FireCallbackDetour(AtkUnitBase* addonPtr, uint valueCount, AtkValue* values, bool close)
     {
-        var ret = AddonFireCallbackHook.Original(addonPtr, valueCount, values, close);
+        var ret = AddonFireCallbackHook!.Original(addonPtr, valueCount, values, close);
 
         var addonName = addonPtr->NameString;
         if (addonName != "ColorantColoring")
@@ -217,7 +217,7 @@ public class ReMakePlacePlugin : IDalamudPlugin
                         }
                     case AtkValueType.String:
                         {
-                            atkValueList.Add(Marshal.PtrToStringUTF8(new IntPtr(a->String)));
+                            atkValueList.Add(Marshal.PtrToStringUTF8(new IntPtr(a->String)) ?? string.Empty);
                             break;
                         }
                     case AtkValueType.UInt:
@@ -349,7 +349,7 @@ public class ReMakePlacePlugin : IDalamudPlugin
     }
 
     public delegate void PlaceItemDelegate(IntPtr housingStruct, IntPtr item);
-    private static HookWrapper<PlaceItemDelegate> PlaceItemHook;
+    private static HookWrapper<PlaceItemDelegate>? PlaceItemHook;
     unsafe static public void PlaceItemDetour(IntPtr housing, IntPtr item)
     {
         /*
@@ -360,7 +360,7 @@ public class ReMakePlacePlugin : IDalamudPlugin
         */
         Svc.Log.Debug($"item detour housing {housing + 24}");
         Svc.Log.Debug($"item detour item {item}");
-        PlaceItemHook.Original(housing, item);
+        PlaceItemHook!.Original(housing, item);
     }
     unsafe static public void PlaceItem(IntPtr item)
     {
@@ -369,10 +369,10 @@ public class ReMakePlacePlugin : IDalamudPlugin
 
 
     internal delegate ushort GetIndexDelegate(byte plotNumber, ushort inventoryIndex);
-    internal static HookWrapper<GetIndexDelegate> GetYardIndexHook;
+    internal static HookWrapper<GetIndexDelegate>? GetYardIndexHook;
     internal static ushort GetYardIndex(byte plotNumber, ushort inventoryIndex)
     {
-        var result = GetYardIndexHook.Original(plotNumber, inventoryIndex);
+        var result = GetYardIndexHook!.Original(plotNumber, inventoryIndex);
         return result;
     }
 
@@ -380,22 +380,22 @@ public class ReMakePlacePlugin : IDalamudPlugin
 
     internal static IntPtr GetObjectFromIndex(IntPtr ObjList, uint index)
     {
-        var result = GetObjectFromIndexHook.Original(ObjList, index);
+        var result = GetObjectFromIndexHook!.Original(ObjList, index);
         return result;
     }
 
     internal delegate IntPtr GetObjectDelegate(IntPtr ObjList, ushort index);
-    internal static HookWrapper<GetObjectDelegate> GetGameObjectHook;
-    internal static HookWrapper<GetActiveObjectDelegate> GetObjectFromIndexHook;
+    internal static HookWrapper<GetObjectDelegate>? GetGameObjectHook;
+    internal static HookWrapper<GetActiveObjectDelegate>? GetObjectFromIndexHook;
 
     internal static IntPtr GetGameObject(IntPtr ObjList, ushort index)
     {
-        return GetGameObjectHook.Original(ObjList, index);
+        return GetGameObjectHook!.Original(ObjList, index);
     }
 
     unsafe static public void SelectItemDetour(IntPtr housing, IntPtr item)
     {
-        SelectItemHook.Original(housing, item);
+        SelectItemHook!.Original(housing, item);
     }
 
     unsafe static public void SelectItem(IntPtr item)
@@ -794,7 +794,7 @@ public class ReMakePlacePlugin : IDalamudPlugin
                     var nodeIndex = indexOfDye == 0 ? 2 : 21000 + indexOfDye;
 
                     var redCrossImageNode = GenericHelpers.GetNodeByIDChain(addon->RootNode, 1, 22, 34, nodeIndex, 2, 4)->GetAsAtkImageNode();
-                    if (redCrossImageNode->IsVisible())
+                    if (redCrossImageNode != null && redCrossImageNode->IsVisible())
                     {
                         Log($"Not enough dye for {rowItem.Name}.");
                         MissingDyes.Add(stain.RowId);
@@ -889,7 +889,7 @@ public class ReMakePlacePlugin : IDalamudPlugin
     public unsafe void MatchLayout()
     {
 
-        List<HousingGameObject> allObjects = null;
+        List<HousingGameObject> allObjects = new();
         Memory Mem = Memory.Instance;
 
         Quaternion rotateVector = new();
@@ -931,7 +931,7 @@ public class ReMakePlacePlugin : IDalamudPlugin
             if (!IsSelectedFloor(gameObject.Y)) continue;
 
             uint furnitureKey = gameObject.housingRowId;
-            HousingItem houseItem = null;
+            HousingItem? houseItem = null;
 
             Vector3 localPosition = new Vector3(gameObject.X, gameObject.Y, gameObject.Z);
             float localRotation = gameObject.rotation;
@@ -1005,7 +1005,7 @@ public class ReMakePlacePlugin : IDalamudPlugin
         {
 
             uint furnitureKey = gameObject.housingRowId;
-            HousingItem houseItem = null;
+            HousingItem? houseItem = null;
 
             Item item;
             Vector3 localPosition = new Vector3(gameObject.X, gameObject.Y, gameObject.Z);
@@ -1200,7 +1200,7 @@ public class ReMakePlacePlugin : IDalamudPlugin
 
     public bool IsSelectedFloor(float y)
     {
-        if (Memory.Instance.GetCurrentTerritory() != Memory.HousingArea.Indoors || Memory.Instance.GetIndoorHouseSize().Equals("Apartment")) return true;
+        if (Memory.Instance.GetCurrentTerritory() != Memory.HousingArea.Indoors || string.Equals(Memory.Instance.GetIndoorHouseSize(), "Apartment", StringComparison.Ordinal)) return true;
 
         if (y < -0.001) return Config.Basement;
         if (y >= -0.001 && y < 6.999) return Config.GroundFloor;
@@ -1337,21 +1337,22 @@ public class ReMakePlacePlugin : IDalamudPlugin
         }
     }
 
-    public static void Log(string message, string detail_message = "")
+    public static void Log(string message, string? detail_message = null)
     {
         var msg = $"{message}";
-        Svc.Log.Info(detail_message == "" ? msg : detail_message);
+        Svc.Log.Info(string.IsNullOrEmpty(detail_message) ? msg : detail_message);
         Svc.Chat.Print(msg);
     }
-    public static void LogError(string message, string detail_message = "")
+    public static void LogError(string message, string? detail_message = null)
     {
         var msg = $"{message}";
         Svc.Log.Error(msg);
 
-        if (detail_message.Length > 0) Svc.Log.Error(detail_message);
+        if (!string.IsNullOrEmpty(detail_message)) Svc.Log.Error(detail_message);
 
         Svc.Chat.PrintError(msg);
     }
 
 }
+
 

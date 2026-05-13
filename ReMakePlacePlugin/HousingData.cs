@@ -7,7 +7,7 @@ namespace ReMakePlacePlugin;
 
 public class HousingData
 {
-    public static HousingData Instance { get; private set; }
+    public static HousingData Instance { get; private set; } = null!;
 
     private readonly Dictionary<uint, HousingFurniture> _furnitureDict;
     private readonly Dictionary<uint, Item> _itemDict;
@@ -22,8 +22,6 @@ public class HousingData
     private readonly Dictionary<ushort, uint> _largeFishprint;
     private readonly Dictionary<ushort, uint> _extraLargeFishprint;
     private readonly Dictionary<ushort, uint> _painting;
-
-    private static ReMakePlacePlugin Plugin;
 
     private HousingData()
     {
@@ -101,7 +99,6 @@ public class HousingData
 
     public static void Init(ReMakePlacePlugin plugin)
     {
-        Plugin = plugin;
         Instance = new HousingData();
     }
 
